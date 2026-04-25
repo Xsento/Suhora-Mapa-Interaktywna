@@ -1,5 +1,9 @@
 # AdAstraMapper
 
+## Launching application
+
+To run application run Launcher.java
+
 ## Orekit
  
 Do działania biblioteki Orekit trzeba dodać folder orekit-data do głównego folderu projektu ($HOME/adastramapper/)
