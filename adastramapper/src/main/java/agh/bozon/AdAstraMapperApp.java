@@ -41,7 +41,7 @@ public class AdAstraMapperApp extends Application {
         // Inicjalizacja sterownika MOCK (trzeci parametr to true = tryb testowy aktywny)
         telescopeController = new TelescopeController("192.168.2.16", 502, true);
 
-        File imgFile = new File("ad4astramapper/src/main/resources/static/img/west.gif");
+        File imgFile = new File("adastramapper/src/main/resources/static/img/west.gif");
         if (imgFile.exists()) {
             mapBackgroundImage = new Image(imgFile.toURI().toString());
         }
