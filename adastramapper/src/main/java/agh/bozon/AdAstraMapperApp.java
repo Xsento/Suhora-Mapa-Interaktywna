@@ -1,5 +1,12 @@
 package agh.bozon;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -7,16 +14,21 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AdAstraMapperApp extends Application {
 
@@ -72,12 +84,67 @@ public class AdAstraMapperApp extends Application {
         Button btnSaveCat = new Button("Zapisz historię (.cat)");
         Button btnSetLocation = new Button("Ustaw Lokalizację (Stacja)");
 
+        // Odczyt plików
         btnLoadCat.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setInitialDirectory(APP_DIR);
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Pliki Katalogu", "*.cat"));
             File file = fc.showOpenDialog(stage);
-            if (file != null) loadedObjects = CatalogManager.loadCatalog(file);
+            //if (file != null) loadedObjects = CatalogManager.loadCatalog(file);
+
+            try (FileReader fileReader = new FileReader(file)) {
+                char[] buffer = new char[100];
+                int length = fileReader.read(buffer);
+
+                if (length != -1) {
+                    String content = new String(buffer, 0, length);
+
+                    String[] lines = content.split("\\r?\\n");
+                    
+                    String [] line1 = lines[0].trim().split("\\s+");
+                    String [] line2 = lines[1].trim().split("\\s+");
+
+                    String name = line1[0] + " " + line1[1];
+
+                    for (AstroObject obj : loadedObjects) {
+                        if (name.equals(obj.getName())) {
+                            System.out.println("Obiekt " + name + " już został załadowany");
+                            System.out.println("Liczba załadowanych obiektów: " + loadedObjects.size());
+                            //throw new IllegalArgumentException("Duplikat obiektu: " + name);
+                            return;
+                        }
+                    }
+
+                    String comment = line1[2] + " ";
+                    for (int i = 3; i < line1.length; i++){
+                        comment += line1[i] + " ";
+                    }
+
+                    System.out.println(name);
+                    System.out.println(comment);
+
+                    double ra = Double.parseDouble(line2[0]) + Double.parseDouble(line2[1]) * (1.0 / 60) + Double.parseDouble(line2[2]) * (1.0 / 3600);
+                    double raDegrees = ra * 15;  // Zamiana godzin na stopnie
+                    System.out.println("RA in degrees: " + raDegrees);
+
+                    // zakładając że deklinacja jest podana w stopniach
+                    double dec = Double.parseDouble(line2[3]) + Double.parseDouble(line2[4]) * (1.0 / 60) + Double.parseDouble(line2[5]) * (1.0 / 3600);
+                    System.out.println("DEC in degrees: " + dec); 
+
+                    double epoch = Double.parseDouble(line2[6]);
+                    System.out.println("Epoch: " + epoch);
+
+                    loadedObjects.add(new AstroObject(name, comment, raDegrees, dec, epoch));
+                    System.out.println("Liczba załadowanych obiektów: " + loadedObjects.size());
+                }
+
+
+            } catch (FileNotFoundException fileNotFoundException) {
+                System.out.println("Nie znaleziono pliku: " + fileNotFoundException.getMessage());
+            } catch (IOException iOException) {
+                System.out.println("Błąd podczas odczytu pliku: " + iOException.getMessage());
+            }
+
         });
 
         btnSaveCat.setOnAction(e -> {
