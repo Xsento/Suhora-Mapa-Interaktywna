@@ -169,10 +169,12 @@ public class AdAstraMapperApp extends Application {
         }
 
         // Rysowanie wczytanych obiektów z pliku .cat (Poglądowo, ułożone sferycznie)
+        double[] objAzAlt = new double[2];
+        AstroObject obj;
         for (int i = 0; i < loadedObjects.size(); i++) {
-            AstroObject obj = loadedObjects.get(i);
-            // Tu w docelowym rozwiązaniu musisz przeliczyć RA/DEC na bieżące LST w Az i Alt, poniżej uproszczone renderowanie
-            drawPoint(gc, obj.getName(), 45 + (i*15), 30 + (i*5), Color.WHITE, w, h);
+            obj = loadedObjects.get(i);
+            objAzAlt = obj.getAzimuthElevation(station);
+            drawPoint(gc, obj.getName(), objAzAlt[0], objAzAlt[1], Color.WHITE, w, h);
         }
 
         // Rysowanie pozycji Księżyca
