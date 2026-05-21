@@ -1,5 +1,9 @@
 package agh.bozon;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -41,9 +45,10 @@ public class AdAstraMapperApp extends Application {
         // Inicjalizacja sterownika MOCK (trzeci parametr to true = tryb testowy aktywny)
         telescopeController = new TelescopeController("192.168.2.16", 502, true);
 
+        // Ładowanie tła mapy
         File imgFile = new File("adastramapper/src/main/resources/static/img/west.gif");
         if (imgFile.exists()) {
-            mapBackgroundImage = new Image(imgFile.toURI().toString());
+            // mapBackgroundImage = new Image(imgFile.toURI().toString());
         }
         else
             System.out.print("Brak pliku: " + imgFile.getAbsolutePath() + "\n");
@@ -71,13 +76,14 @@ public class AdAstraMapperApp extends Application {
         Button btnLoadCat = new Button("Wczytaj obiekty (.cat)");
         Button btnSaveCat = new Button("Zapisz historię (.cat)");
         Button btnSetLocation = new Button("Ustaw Lokalizację (Stacja)");
+        Button btnClearObjects = new Button("Wyczyść obiekty");
 
         btnLoadCat.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setInitialDirectory(APP_DIR);
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Pliki Katalogu", "*.cat"));
-            File file = fc.showOpenDialog(stage);
-            if (file != null) loadedObjects = CatalogManager.loadCatalog(file);
+            List<File> files = fc.showOpenMultipleDialog(stage);
+            loadedObjects = CatalogManager.loadCatalog(files, loadedObjects);
         });
 
         btnSaveCat.setOnAction(e -> {
@@ -90,7 +96,11 @@ public class AdAstraMapperApp extends Application {
 
         btnSetLocation.setOnAction(e -> showLocationDialog());
 
-        return new ToolBar(btnLoadCat, btnSaveCat, new Separator(), btnSetLocation);
+        btnClearObjects.setOnAction(e -> {
+            loadedObjects.clear();
+        });
+
+        return new ToolBar(btnLoadCat, btnSaveCat, btnClearObjects, new Separator(), btnSetLocation);
     }
 
     private void showLocationDialog() {
@@ -165,17 +175,15 @@ public class AdAstraMapperApp extends Application {
             gc.drawImage(mapBackgroundImage, 0, 0, w, h);
         } else {
             gc.setStroke(Color.DARKSLATEGRAY);
-            gc.strokeOval(50, 50, w - 100, h - 100);
+            gc.strokeOval(50, 50, w - 100, h - 100);    // ???
         }
 
-        // Rysowanie wczytanych obiektów z pliku .cat (Poglądowo, ułożone sferycznie)
-        double[] objAzAlt = new double[2];
-        AstroObject obj;
-        for (int i = 0; i < loadedObjects.size(); i++) {
-            obj = loadedObjects.get(i);
-            objAzAlt = obj.getAzimuthElevation(station);
-            drawPoint(gc, obj.getName(), objAzAlt[0], objAzAlt[1], Color.WHITE, w, h);
+        // Rysowanie załadowanych obiektów (z przeliczeniem na Az/Alt)
+        for (AstroObject obj : loadedObjects) {
+            drawPoint(gc, obj.getName(), obj.getAzimuthElevation(station)[0], obj.getAzimuthElevation(station)[1], Color.WHITE, w, h);
+            System.out.println(obj.getName() + " - Az: " + obj.getAzimuthElevation(station)[0] + ", Alt: " + obj.getAzimuthElevation(station)[1]);
         }
+
 
         // Rysowanie pozycji Księżyca
         double[] moonAzAlt = Moon.getAzimuthElevation(station);
