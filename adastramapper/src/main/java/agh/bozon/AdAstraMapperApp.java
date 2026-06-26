@@ -178,17 +178,17 @@ public class AdAstraMapperApp extends Application {
             gc.strokeOval(50, 50, w - 100, h - 100);    // ???
         }
 
-        // Rysowanie załadowanych obiektów (z przeliczeniem na Az/Alt)
+        // Rysowanie załadowanych obiektów
         for (AstroObject obj : loadedObjects) {
-            drawPoint(gc, obj.getName(), obj.getAzimuthElevation(station)[0], obj.getAzimuthElevation(station)[1], Color.WHITE, w, h);
-            System.out.println(obj.getName() + " - Az: " + obj.getAzimuthElevation(station)[0] + ", Alt: " + obj.getAzimuthElevation(station)[1]);
+            drawPoint(gc, obj.getName(), obj.getDeclinationHourAngle(station)[0], obj.getDeclinationHourAngle(station)[1], Color.WHITE, w, h);
+            System.out.println(obj.getName() + " - Dec: " + obj.getDeclinationHourAngle(station)[0] + ", Hour: " + obj.getDeclinationHourAngle(station)[1]);
         }
 
 
         // Rysowanie pozycji Księżyca
-        double[] moonAzAlt = Moon.getAzimuthElevation(station);
+        double[] moonDecHour = Moon.getDeclinationHourAngle(station);
         if (moonAzAlt != null) {
-            drawPoint(gc, "Księżyc", moonAzAlt[0], moonAzAlt[1], Color.LIGHTGRAY, w, h);
+            drawPoint(gc, "Księżyc", moonDecHour[0], moonDecHour[1], Color.LIGHTGRAY, w, h);
         }
 
         // Rysowanie teleskopu
