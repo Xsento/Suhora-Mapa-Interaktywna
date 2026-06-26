@@ -31,7 +31,8 @@ public class Moon {
         }
     }
 
-    public static double[] getAzimuthElevation(ObservationStation station) {
+    //zwraca wspolrzedzne godzinowe DEC/HOUR (w stopniach) Ksiezyca
+    public static double[] getDeclinationHourAngle(ObservationStation station) {
         if (!isInitialized) return null;
         try {
             Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
@@ -42,9 +43,15 @@ public class Moon {
             CelestialBody moon = CelestialBodyFactory.getMoon();
             AbsoluteDate date = new AbsoluteDate(new Date(), TimeScalesFactory.getUTC());
 
+            //wspolrzedzne azymutalne
             double elevation = stationFrame.getElevation(moon.getPVCoordinates(date, stationFrame).getPosition(), stationFrame, date);
             double azimuth = stationFrame.getAzimuth(moon.getPVCoordinates(date, stationFrame).getPosition(), stationFrame, date);
-            return new double[]{Math.toDegrees(azimuth), Math.toDegrees(elevation)};
+
+            //przeliczenie na wspolrzedne godzinowe
+            double declination=Math.asin(Math.sin(elevation)*Math.sin(station.getLatitude()) - Math.cos(station.getLatitude())*Math.cos(elevation)*Math.cos(azimuth));
+            double hourAngle=Math.atan((Math.sin(azimuth)) / (Math.cos(azimuth)*Math.sin(station.getLatitude()) + Math.tan(elevation)*Math.cos(station.getLatitude())));
+            
+            return new double[]{Math.toDegrees(declination), Math.toDegrees(hourAngle)};
         } catch (Exception e) {
             return null;
         }
