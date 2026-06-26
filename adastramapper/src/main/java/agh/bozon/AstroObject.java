@@ -55,8 +55,8 @@ public class AstroObject {
         return epoch;
     }
 
-    // Przeliczenie RA/DEC na Az/Alt dla danej stacji obserwacyjnej i aktualnego czasu
-    public double[] getAzimuthElevation(ObservationStation station) {
+    // Przeliczenie RA/DEC na Dec/Hour (wspolrzedzne godzinowe w stopniach) dla danej stacji obserwacyjnej i aktualnego czasu
+    public double[] getDeclinationHourAngle(ObservationStation station) {
         try {
             // obsługa epoki - przeliczenie pozycji obiektu z układu związanego z epoką na aktualny układ GCRF
             AbsoluteDate epochDate = new AbsoluteDate(AbsoluteDate.J2000_EPOCH, (this.epoch - 2000.0) * Constants.JULIAN_YEAR);
@@ -79,7 +79,11 @@ public class AstroObject {
             double elevation = stationFrame.getElevation(spacePosition, gcrf, currentDate);
             double azimuth = stationFrame.getAzimuth(spacePosition, gcrf, currentDate);
 
-            return new double[]{Math.toDegrees(azimuth), Math.toDegrees(elevation)};
+            // przeliczenie z azymutalnych na godzinowe w radianach
+            double declination=Math.asin(Math.sin(elevation)*Math.sin(station.getLatitude())-Math.cos(station.getLatitude())*Math.cos(elevation)*Math.cos(azimuth));
+            double hourAngle=Math.atan((Math.sin(azimuth))/(Math.cos(azimuth)*Math.sin(station.getLatitude())+Math.tan(elevation)*Math.cos(station.getLatitude())));
+
+            return new double[]{Math.toDegrees(declination), Math.toDegrees(hourAngle)};
         } catch (Exception e) {
             e.printStackTrace();
             return null;
