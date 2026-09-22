@@ -11,16 +11,21 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AdAstraMapperApp extends Application {
 
@@ -187,7 +192,7 @@ public class AdAstraMapperApp extends Application {
 
         // Rysowanie pozycji Księżyca
         double[] moonDecHour = Moon.getDeclinationHourAngle(station);
-        if (moonAzAlt != null) {
+        if (moonDecHour != null) {
             drawPoint(gc, "Księżyc", moonDecHour[0], moonDecHour[1], Color.LIGHTGRAY, w, h);
         }
 
