@@ -55,8 +55,12 @@ public class AstroObject {
         return epoch;
     }
 
-    // Przeliczenie RA/DEC na Dec/Hour (wspolrzedzne godzinowe w stopniach) dla danej stacji obserwacyjnej i aktualnego czasu
+    // Przeliczenie RA/DEC na Dec/Hour (wspolrzedzne godzinowe w stopniach) dla danej stacji obserwacyjnej i wybranego czasu
     public double[] getDeclinationHourAngle(ObservationStation station) {
+        return getDeclinationHourAngle(station, new Date());
+    }
+
+    public double[] getDeclinationHourAngle(ObservationStation station, Date currentDateValue) {
         try {
             // obsługa epoki - przeliczenie pozycji obiektu z układu związanego z epoką na aktualny układ GCRF
             AbsoluteDate epochDate = new AbsoluteDate(AbsoluteDate.J2000_EPOCH, (this.epoch - 2000.0) * Constants.JULIAN_YEAR);
@@ -66,22 +70,22 @@ public class AstroObject {
             Vector3D positionInGcrf = epochToGcrf.transformPosition(position);
 
             // wektor pozycji ma zawsze długość 1, więc go trzeba przeskalować bo orekit zgłupieje (traktuje to jako odległość 1m od środka ziemi)
-            Vector3D spacePosition = positionInGcrf.scalarMultiply(1e12); 
+            Vector3D spacePosition = positionInGcrf.scalarMultiply(1e12);
 
             Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
             OneAxisEllipsoid earth = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS, Constants.WGS84_EARTH_FLATTENING, earthFrame);
             GeodeticPoint stationLocation = new GeodeticPoint(Math.toRadians(station.getLatitude()), Math.toRadians(station.getLongitude()), station.getAltitude());
             TopocentricFrame stationFrame = new TopocentricFrame(earth, stationLocation, "Teleskop");
 
-            AbsoluteDate currentDate = new AbsoluteDate(new Date(), TimeScalesFactory.getUTC());
-            
+            AbsoluteDate currentDate = new AbsoluteDate(currentDateValue, TimeScalesFactory.getUTC());
+
             // argument frame w metodach getElevation i getAzimuth to układ w którym jest zdefiniowana pozycja obiektu, czyli GCRF, a nie stacja obserwacyjna
             double elevation = stationFrame.getElevation(spacePosition, gcrf, currentDate);
             double azimuth = stationFrame.getAzimuth(spacePosition, gcrf, currentDate);
 
             // przeliczenie z azymutalnych na godzinowe w radianach
-            double declination=Math.asin(Math.sin(elevation)*Math.sin(station.getLatitude())-Math.cos(station.getLatitude())*Math.cos(elevation)*Math.cos(azimuth));
-            double hourAngle=Math.atan((Math.sin(azimuth))/(Math.cos(azimuth)*Math.sin(station.getLatitude())+Math.tan(elevation)*Math.cos(station.getLatitude())));
+            double declination = Math.asin(Math.sin(elevation) * Math.sin(station.getLatitude()) - Math.cos(station.getLatitude()) * Math.cos(elevation) * Math.cos(azimuth));
+            double hourAngle = Math.atan((Math.sin(azimuth)) / (Math.cos(azimuth) * Math.sin(station.getLatitude()) + Math.tan(elevation) * Math.cos(station.getLatitude())));
 
             return new double[]{Math.toDegrees(declination), Math.toDegrees(hourAngle)};
         } catch (Exception e) {
