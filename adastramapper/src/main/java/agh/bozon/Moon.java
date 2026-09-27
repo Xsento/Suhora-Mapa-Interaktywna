@@ -33,6 +33,10 @@ public class Moon {
 
     //zwraca wspolrzedzne godzinowe DEC/HOUR (w stopniach) Ksiezyca
     public static double[] getDeclinationHourAngle(ObservationStation station) {
+        return getDeclinationHourAngle(station, new Date());
+    }
+
+    public static double[] getDeclinationHourAngle(ObservationStation station, Date currentDateValue) {
         if (!isInitialized) return null;
         try {
             Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
@@ -41,16 +45,16 @@ public class Moon {
             TopocentricFrame stationFrame = new TopocentricFrame(earth, stationLocation, "Teleskop");
 
             CelestialBody moon = CelestialBodyFactory.getMoon();
-            AbsoluteDate date = new AbsoluteDate(new Date(), TimeScalesFactory.getUTC());
+            AbsoluteDate date = new AbsoluteDate(currentDateValue, TimeScalesFactory.getUTC());
 
             //wspolrzedzne azymutalne
             double elevation = stationFrame.getElevation(moon.getPVCoordinates(date, stationFrame).getPosition(), stationFrame, date);
             double azimuth = stationFrame.getAzimuth(moon.getPVCoordinates(date, stationFrame).getPosition(), stationFrame, date);
 
             //przeliczenie na wspolrzedne godzinowe
-            double declination=Math.asin(Math.sin(elevation)*Math.sin(station.getLatitude()) - Math.cos(station.getLatitude())*Math.cos(elevation)*Math.cos(azimuth));
-            double hourAngle=Math.atan((Math.sin(azimuth)) / (Math.cos(azimuth)*Math.sin(station.getLatitude()) + Math.tan(elevation)*Math.cos(station.getLatitude())));
-            
+            double declination = Math.asin(Math.sin(elevation) * Math.sin(station.getLatitude()) - Math.cos(station.getLatitude()) * Math.cos(elevation) * Math.cos(azimuth));
+            double hourAngle = Math.atan((Math.sin(azimuth)) / (Math.cos(azimuth) * Math.sin(station.getLatitude()) + Math.tan(elevation) * Math.cos(station.getLatitude())));
+
             return new double[]{Math.toDegrees(declination), Math.toDegrees(hourAngle)};
         } catch (Exception e) {
             return null;
